@@ -1,11 +1,16 @@
 from neuralnet import *
+from nnmath import *
 
-net = NeuralNet()
+def main():
+	# Create a neural net
+	nn = NeuralNet()
 
-tansig = lambda n: 2 / (1 + np.exp(-2 * n)) - 1
-logsig = lambda n: 1 / (1 + np.exp(-n))
+	# Build the network
+	nn.build(np.array([4, 2, 1]), logsig)
+	# TODO: Define output layer
 
-net.build(np.array([4, 2, 1]), logsig)
-# TODO: Define output layer
-net.train()
-net.test()
+	nn.train()
+	nn.test()
+
+if __name__ == "__main__":
+	main()
