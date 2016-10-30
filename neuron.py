@@ -1,9 +1,9 @@
 import numpy as np
 
 class Neuron:
-	def __init__(self, size, beta, activation, bias):
+	def __init__(self, size, beta, activation):
 		self.w = np.random.random_sample(size)
-		self.b = bias
+		self.b = np.random.random_sample()
 		self.beta = beta
 		self.activation = activation
 
@@ -14,3 +14,6 @@ class Neuron:
 		output = self.compute(inputs)
 		self.w += self.beta * (output - t) * inputs
 		return output
+
+	def set_activation(self, func):
+		self.activation = func

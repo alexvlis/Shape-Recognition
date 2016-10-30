@@ -1,30 +1,46 @@
-from neuron import *
+from neuron import Neuron
+from genetics import Gene
+from nnmath import *
 
-class NeuralNet:
-	def __init__(self):
-		self.layers = null
+class NeuralNet(Gene):
+	def __init__(self, targets):
+		self.layers = []
+		self.fitness = 0
+		self.targets = targets
+		self.build(np.array([25, 4, 2, 3]), logsig)
+		# TODO: Define output layer
 
 	def build(self, skeleton, activation):
-		for width in skeleton:
-			layer = [Neuron(size=2, beta=0.5, bias=0, activation=activation) for i in range(width)]
+		for i, width in enumerate(skeleton, start=1):
+			layer = [Neuron(size=skeleton[i-1], beta=0.5, activation=activation) for i in range(width)]
 
 			self.layers.append(layer)
 
-	def output_layer(self, decisions):
-		pass
+	def output_layer(self, funcs):
+		for neuron, func in zip(self.layers[-1], funcs):
+			neuron.set_activation(func)
 
-	def train(self, training_data):
-		for inputs in training_data:
+	def feed_forward(self, input_vector):
+		for layer in self.layers:
 			outputs = []
-			for layer in self.layers:
-				for i, neuron in enumerate(layer):
-					outputs[i] = neuron.activate(inputs, ???)
+			for i, neuron in enumerate(layer):
+				outputs[i] = neuron.compute(input_vector)
 
-				inputs = outputs
-				outputs = []
+			input_vector = outputs
 
-	def test(self):
+		return outputs
+
+	def backpropagate(self, data):
+		output = self.feed_forward(input_vector)
+		# TODO: Finish implementation
+
+
+	'''********************** Overload gene functions ***********************'''
+	def mutate(self):
 		pass
 
-	def predict(self):
+	def breed(self):
+		pass
+
+	def encode(self):
 		pass
