@@ -1,10 +1,13 @@
 from nnmath import *
 from random import randint
 
-# Base class definition of a gene
+# Super class of a gene
 class Gene:
+	self.fitness = 0
+	self.genome = 0
+
 	def __init__(self):
-		self.fitness = 0
+		pass
 
 	def mutate(self):
 		pass
@@ -18,39 +21,48 @@ class Gene:
 	def fitness(self):
 		return self.fitness
 
+	def evaluate(self):
+		pass
+
 
 class GeneticAlgorithm:
-	def __init__(self, obj, targets):
-		self.cores = multiprocessing.cpu_count()
+	def __init__(self, generations, mutation_rate, obj, targets):
 		self.obj = obj
 		self.targets = targets
+		self.generation = 0
+		self.armageddon = generations
+		self.mutation_rate = mutation_rate
 
 	def population(self, size):
 		# Use the factory method to create the population
 		self.population = [self.obj(self.targets) for i in range(size)]
-	
+
 	def evaluate(self, data):
 		(input_vector, target) = data
 
-		for nn in self.population:
-			output = nn.feed_forward(input_vector)
-			nn.fitness = euclidean(np.select(output, self.targets), target)
+		for gene in self.population:
+			output = gene.evaluate(input_vector)
+			gene.fitness = euclidean(np.select(output, self.targets), target)
 
 		self.population = sorted(self.population, key=lambda gene: gene.fitness())
 
 	def select(self):
-		# Kill the 5 weakest genes
-		self.population = self.population[5:-1].copy()
+		# Kill the 5 least fit genes
+		self.population = self.population[0:-5].copy()
 
 	def breed(self):
+		offsprings = []
 		for gene in self.population:
 			# Breed with random gene from the population
 			offspring = gene.breed(self.population[randint(0, len(self.population))])
-			offsprint.mutate()
-			self.population.append(offspring)
+			offspring.mutate()
+			offsprings.append(offspring)
+			gene.mutate()
 
-	def best_gene(self):
-		return self.population[-1]
+		self.population.append(offsprings)
+
+	def fittest(self):
+		return self.population[0]
 
 	def evolve(self):
-		return True
+		return True if self.generation < self.armageddon else False
