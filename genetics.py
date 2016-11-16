@@ -3,8 +3,8 @@ from random import randint
 
 # Super class of a gene
 class Gene:
-	self.fitness = 0
-	self.genome = 0
+	fitness = 0
+	genome = []
 
 	def __init__(self):
 		pass
@@ -18,51 +18,55 @@ class Gene:
 	def encode(self):
 		pass
 
-	def fitness(self):
-		return self.fitness
-
 	def evaluate(self):
 		pass
 
 
 class GeneticAlgorithm:
-	def __init__(self, generations, mutation_rate, obj, targets):
+	def __init__(self, error, mutation_rate, obj, training_data, targets):
 		self.obj = obj
-		self.targets = targets
-		self.generation = 0
-		self.armageddon = generations
 		self.mutation_rate = mutation_rate
+		self.error = error
+		self.training_data = training_data
+		self.targets = targets
 
 	def population(self, size):
 		# Use the factory method to create the population
-		self.population = [self.obj(self.targets) for i in range(size)]
+		self.population = [self.obj() for i in range(size)]
 
-	def evaluate(self, data):
-		(input_vector, target) = data
-
+	def evaluate(self):
 		for gene in self.population:
-			output = gene.evaluate(input_vector)
-			gene.fitness = euclidean(np.select(output, self.targets), target)
+			for data in self.training_data:
+				(tag, input_vector) = data
+				output = gene.evaluate(input_vector)
 
-		self.population = sorted(self.population, key=lambda gene: gene.fitness())
+				target_vector = [0] * len(self.targets)
+				for i, field in enumerate(self.targets):
+					if field in tag:
+						target_vector[i] = 1;
+
+				gene.fitness = np.sum(np.multiply(output, target_vector))/len(target_vector)
+
+		self.population = sorted(self.population, key=lambda gene: gene.fitness)
 
 	def select(self):
-		# Kill the 5 least fit genes
-		self.population = self.population[0:-5].copy()
+		# Kill the least fit gene
+		self.population = self.population[1:]
 
 	def breed(self):
 		offsprings = []
 		for gene in self.population:
 			# Breed with random gene from the population
-			offspring = gene.breed(self.population[randint(0, len(self.population))])
-			offspring.mutate()
-			offsprings.append(offspring)
-			gene.mutate()
+			offspring = gene.breed(self.population[randint(0, len(self.population)-1)])
 
-		self.population.append(offsprings)
+			offspring.mutate(self.mutation_rate)
+			offsprings.append(offspring)
+			gene.mutate(self.mutation_rate)
+
+		self.population = self.population + offsprings
 
 	def fittest(self):
-		return self.population[0]
+		return self.population[-1]
 
 	def evolve(self):
-		return True if self.generation < self.armageddon else False
+		return True if (1 - self.fittest().fitness) > self.error else False
