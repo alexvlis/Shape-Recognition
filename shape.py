@@ -20,10 +20,10 @@ def main(argv):
 		# Define target shapes
 		targets = ['rectangle', 'triangle', 'circle']
 
-		mutation_rate = 0.8
-		error = 0.5
+		mutation_rate = 0.1
+		error = 0.3
 		ga = GeneticAlgorithm(error, mutation_rate, NeuralNet, training_data, targets)
-		ga.population(20)
+		ga.population(100)
 
 		print "Initiating GA heuristic approach..."
 
@@ -33,7 +33,7 @@ def main(argv):
 			ga.breed()
 
 			print "error: " + str(1 - ga.fittest().fitness)
-			print "target error: " + str(error)
+			print "\n--------------------------------------------------------\n"
 
 		# Switch to a gradient search
 		# print "Attempting gradient search..."
@@ -49,8 +49,8 @@ def main(argv):
 		print "Done!"
 		# TODO: Store the weights
 
-	elif str(argv[1]) == "predict":
-		test_data = 0
+	elif str(argv[1]) == "test":
+		test_data = []
 		# TODO
 	else:
 		print "ERROR: Unknown command " + argv[1]

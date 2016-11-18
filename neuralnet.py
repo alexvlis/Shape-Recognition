@@ -10,26 +10,22 @@ class ErrorMinimized(Exception):
 
 class Neuron:
 	def __init__(self, size, activation):
-		self.w = 4 * np.random.random_sample(size)
-		self.b = np.random.random_sample()
+		self.w = 5 * (2 * np.random.random_sample(size) - 1)
+		self.b = 2 * np.random.random_sample() - 1
 		self.activation = activation
 
 	def activate(self, inputs):
 		return self.activation(np.sum((np.multiply(self.w, inputs) + self.b)))
 
-	def encode(self):
-		return np.append(self.w, self.b)
-
 	def mutate(self, rate):
-		self.w += rate * np.random.random_sample()
-		self.b += rate * np.random.random_sample()
+		self.w += rate * round(2 * np.random.random_sample() - 1)
+		self.b += rate * round(2 * np.random.random_sample() - 1)
 
 
 class NeuralNet(Gene):
 	def __init__(self):
 		self.layers = []
-		self.build([2500, 5, 5, 4, 3], logsig)
-		self.encode()
+		self.build([2500, 5, 4, 3], logsig)
 
 	def build(self, skeleton, activation):
 		for i, width in enumerate(skeleton[1:], start=1):
@@ -58,19 +54,26 @@ class NeuralNet(Gene):
 			for neuron in layer:
 				neuron.mutate(rate)
 
-	def encode(self):
-		for layer in self.layers:
-			for neuron in layer:
-				self.genome.append(neuron.encode())
-
 	def evaluate(self, input_vector):
 		return self.feed_forward(input_vector)
 
-	def breed(self, parent):
+	def breed(self, parent, mutation_rate):
 		offspring = copy.deepcopy(parent)
+		fitness_sum = self.fitness + parent.fitness
+		if fitness_sum == 0:
+			weight1 = 0.5
+			weight2 = 0.5
+		else:
+			weight1 = self.fitness/fitness_sum
+			weight2 = parent.fitness/fitness_sum
+
 		for layer, off_layer in zip(self.layers, offspring.layers):
 			for neuron, off_neuron in zip(layer, off_layer):
-				off_neuron.w =
-				off_neuron.b =
+				off_neuron.w = weight1 * neuron.w + weight2 * off_neuron.w
+				off_neuron.b = weight1 * neuron.b + weight2 * off_neuron.b
+
+				# Mutate the offspring and the parent neurons
+				neuron.mutate(mutation_rate)
+				off_neuron.mutate(mutation_rate)
 
 		return offspring
