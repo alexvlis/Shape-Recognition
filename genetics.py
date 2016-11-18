@@ -30,7 +30,6 @@ class GeneticAlgorithm:
 		self.error = error
 		self.training_data = training_data
 		self.targets = targets
-		self.generation = 1
 		self.popsize = 0
 
 	def population(self, size):
@@ -40,6 +39,8 @@ class GeneticAlgorithm:
 
 	def evaluate(self):
 		for gene in self.population:
+			# Reset the score
+			gene.score = 0
 			for data in self.training_data:
 				(tags, input_vector) = data
 				output = gene.evaluate(input_vector)
@@ -55,11 +56,10 @@ class GeneticAlgorithm:
 				print eval_vector
 				gene.score += np.sum(np.multiply(output, eval_vector))
 
-			maxscore = len(eval_vector) * len(self.training_data) * self.generation
+			maxscore = len(eval_vector) * len(self.training_data)
 			gene.fitness = gene.score/maxscore
 
 		self.population = sorted(self.population, key=lambda gene: gene.fitness)
-		self.generation += 1
 
 	def select(self):
 		# Keep the population size constant
