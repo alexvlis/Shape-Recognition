@@ -1,11 +1,21 @@
-import sys
 import os
-from genetics import GeneticAlgorithm
-from neuralnet import *
+import sys
 from scipy import misc
+from neuralnet import *
+from genetics import GeneticAlgorithm
 
 def main(argv):
-	if (str(argv[1]) == 'train'):
+	# Set Numpy warning level
+	np.seterr(over='ignore')
+
+	# Define target shapes
+	targets = np.array(['rectangle', 'triangle', 'circle'])
+
+	if argv[1] == 'train':
+		if len(argv) < 3:
+		    print "Usage: python shape.py train <error>"
+		    sys.exit()
+
 		# Load the training data
 		training_data = []
 		for (dirpath, dirnames, filenames) in os.walk('./training_data/'):
@@ -17,11 +27,8 @@ def main(argv):
 					except:
 						pass
 
-		# Define target shapes
-		targets = ['rectangle', 'triangle', 'circle']
-
 		mutation_rate = 0.1
-		error = 0.3
+		error = float(argv[2])
 		ga = GeneticAlgorithm(error, mutation_rate, NeuralNet, training_data, targets)
 		ga.population(100)
 
@@ -32,26 +39,40 @@ def main(argv):
 			ga.select()
 			ga.breed()
 
-			print "error: " + str(1 - ga.fittest().fitness)
+			print "error: " + str(ga.error)
 			print "\n--------------------------------------------------------\n"
 
-		# Switch to a gradient search
-		# print "Attempting gradient search..."
 
-		# nn = ga.fittest()
-		# for idx, data in enumerate(training_data, start=i):
-		# 	try:
-		# 		nn.backpropagate(data)
-		# 	except ErrorMinimized as e:
-		# 		print e.message
-		# 		break
+		# Write the weights to file
+		nn = ga.fittest()
+		with open("weights.txt", "w+") as f:
+		    for layer in nn.layers:
+		        for neuron in layer:
+					for weight in neuron.w:
+					    f.write(str(weight) + ";")
+					f.write(str(neuron.b) + "\n")
 
 		print "Done!"
-		# TODO: Store the weights
 
-	elif str(argv[1]) == "test":
-		test_data = []
-		# TODO
+	elif argv[1] == "test":
+		if len(argv) < 3:
+		    print "Usage: python shape.py test <image>"
+		    sys.exit()
+
+		nn = NeuralNet()
+		with open("weights.txt", "r") as f:
+			for layer in nn.layers:
+				for neuron in layer:
+					line = f.readline().split(";")
+					neuron.w = np.array(line[0:-1]).astype(np.float)
+					neuron.b = float(line[-1])
+
+		img = np.ravel(misc.imread(argv[2], flatten=True))
+
+		output = nn.feed_forward(img)
+		result = targets[np.around(output).astype(np.bool)]
+		print result
+
 	else:
 		print "ERROR: Unknown command " + argv[1]
 
