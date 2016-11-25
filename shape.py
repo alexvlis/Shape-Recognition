@@ -1,5 +1,6 @@
 import os
 import sys
+import random
 from scipy import misc
 from neuralnet import *
 from genetics import GeneticAlgorithm
@@ -27,6 +28,9 @@ def main(argv):
 					except:
 						pass
 
+		# Shuffle for more randomness
+		random.shuffle(training_data)
+
 		mutation_rate = 0.1
 		error = float(argv[2])
 		ga = GeneticAlgorithm(error, mutation_rate, NeuralNet, training_data, targets)
@@ -41,7 +45,6 @@ def main(argv):
 
 			print "error: " + str(ga.error)
 			print "\n--------------------------------------------------------\n"
-
 
 		# Write the weights to file
 		nn = ga.fittest()
