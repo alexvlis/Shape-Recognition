@@ -36,15 +36,15 @@ def main(argv):
 		ga = GeneticAlgorithm(error, mutation_rate, NeuralNet, training_data, targets)
 		ga.population(100)
 
-		print "Initiating GA heuristic approach..."
+		print "Initiating GA heuristic approach...\n"
 
 		while ga.evolve():
 			ga.evaluate()
 			ga.select()
 			ga.breed()
 
-			print "error: " + str(ga.error)
-			print "\n--------------------------------------------------------\n"
+		print "error: " + str(ga.error)
+		print "--------------------------------------------------------------\n"
 
 		# Write the weights to file
 		nn = ga.fittest()
