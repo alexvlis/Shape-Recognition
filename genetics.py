@@ -30,6 +30,11 @@ class Gene:
 
 class GeneticAlgorithm:
 	def __init__(self, error, mutation_rate, data, targets, obj, args):
+		"""
+		This contructor takes multiple parameters as well as the constructor
+		for the population and an n-tuple for the arguments of the contructor.
+		It is assumed the contructor know how to decompose this.
+		"""
 		self.obj = obj
 		self.mutation_rate = mutation_rate
 		self.target_error = error
@@ -39,8 +44,8 @@ class GeneticAlgorithm:
 		self.error = 1
 
 	def population(self, size):
-		# Use the factory method to create the population
-		self.population = [self.obj(args) for i in range(size)]
+		# Use the object constructor to create the population
+		self.population = np.array([self.obj(args) for _ in range(size)])
 		self.popsize = size
 
 	def evaluate(self):
@@ -49,13 +54,15 @@ class GeneticAlgorithm:
 			gene.score = 0
 			for data in self.training_data:
 				(tags, input_vector) = data
-				print tags
-
 				output = gene.evaluate(input_vector)
-				print output
+
+				# Determine the desired output
 				target = map(lambda x: int(x in tags), self.targets)
+
+				# Calculate how well it performed
 				eval_vector = (target == np.around(output)).astype(np.int)
 
+				# Build the scoring vector
 				scorer = [0] * len(output)
 				for i, value in enumerate(target):
 					if value == 0:
@@ -66,11 +73,9 @@ class GeneticAlgorithm:
 				gene.score += np.dot(scorer, eval_vector)
 
 			gene.fitness = gene.score/(len(eval_vector) * len(self.training_data))
-			print "------------------------------------------------------------"
 
 		self.population = sorted(self.population, key=lambda gene: gene.fitness)
-		self.error = 1 - self.fittest().fitness
-
+		self.error = 1 - self.fittest().fitness  # Set the error
 
 	def crossover(self):
 		offsprings = []
@@ -81,6 +86,12 @@ class GeneticAlgorithm:
 			offsprings.append(offspring)
 
 		self.population = self.population + offsprings
+
+	def crossover(self):
+		# Select parents based on roulette selection
+		for _ in range(self.popsize):
+			parents = self.roulette(2)
+			offspring = self.breed(parents)
 
 	def breed(self, parents):
 		# Create a copy from one of the genes
@@ -99,9 +110,12 @@ class GeneticAlgorithm:
 		# Keep the population size constant
 		self.population = self.population[-self.popsize:]
 
-	def roulette(self):
-		# TODO: Implement Roulette selection
-		pass
+	def roulette(self, n):
+		# Gather the fitnesses from all the gene
+		fitnesses = map(lambda x: x.fitness, self.population)
+		fitnesses /= np.sum(fitnesses) # Normalise
+
+		return np.random.choice(self.population, n, p=fitnesses)
 
 	def fittest(self):
 		return self.population[-1]
