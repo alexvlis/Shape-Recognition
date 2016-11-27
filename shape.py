@@ -38,11 +38,19 @@ def main(argv):
 
 		mutation_rate = 0.1
 		error = float(argv[2])
-		ga = GeneticAlgorithm(error, mutation_rate, NeuralNet, training_data, targets)
+		img_len = len(training_data[0][1])
+		ga = GeneticAlgorithm(error = error,
+								mutation_rate = mutation_rate,
+								data = training_data,
+								targets = targets,
+								obj = NeuralNet,
+								args = ([img_len, 200, 50, 4, 2], logsig))
+		# Create the 1st generation
 		ga.population(100)
 
 		print "Initiating GA heuristic approach..."
 
+		# Start evolution
 		while ga.evolve():
 			try:
 				ga.evaluate()
@@ -74,8 +82,7 @@ def main(argv):
 		output = nn.feed_forward(img)
 		result = targets[np.around(output).astype(np.bool)]
 
-		print output
-		print result
+		print (output, result)
 
 	else:
 		print "ERROR: Unknown command " + argv[1]
