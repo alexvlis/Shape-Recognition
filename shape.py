@@ -1,16 +1,21 @@
 import os
 import sys
 import random
+import signal
 from scipy import misc
 from neuralnet import *
 from genetics import GeneticAlgorithm
+
+class GAKill(Exception):
+	def __init__(self, message):
+		self.message = message
 
 def main(argv):
 	# Set Numpy warning level
 	np.seterr(over='ignore')
 
 	# Define target shapes
-	targets = np.array(['rectangle', 'triangle', 'circle'])
+	targets = np.array(['rectangle', 'circle'])
 
 	if argv[1] == 'train':
 		if len(argv) < 3:
@@ -36,24 +41,24 @@ def main(argv):
 		ga = GeneticAlgorithm(error, mutation_rate, NeuralNet, training_data, targets)
 		ga.population(100)
 
-		print "Initiating GA heuristic approach...\n"
+		print "Initiating GA heuristic approach..."
 
 		while ga.evolve():
-			ga.evaluate()
-			ga.select()
-			ga.breed()
+			try:
+				ga.evaluate()
+				ga.select()
+				ga.crossover()
+				print "error: " + str(ga.error)
+			except GAKill as e:
+				print e.message
+				break
 
 		print "error: " + str(ga.error)
 		print "--------------------------------------------------------------\n"
 
 		# Write the weights to file
 		nn = ga.fittest()
-		with open("weights.txt", "w+") as f:
-		    for layer in nn.layers:
-		        for neuron in layer:
-					for weight in neuron.w:
-					    f.write(str(weight) + ";")
-					f.write(str(neuron.b) + "\n")
+		nn.save("weights.txt")
 
 		print "Done!"
 
@@ -62,22 +67,23 @@ def main(argv):
 		    print "Usage: python shape.py test <image>"
 		    sys.exit()
 
-		nn = NeuralNet()
-		with open("weights.txt", "r") as f:
-			for layer in nn.layers:
-				for neuron in layer:
-					line = f.readline().split(";")
-					neuron.w = np.array(line[0:-1]).astype(np.float)
-					neuron.b = float(line[-1])
-
 		img = np.ravel(misc.imread(argv[2], flatten=True))
+		nn = NeuralNet(len(img))
+		nn.load("weights.txt")
 
 		output = nn.feed_forward(img)
 		result = targets[np.around(output).astype(np.bool)]
+
+		print output
 		print result
 
 	else:
 		print "ERROR: Unknown command " + argv[1]
 
+
+def signal_handler(signal, frame):
+	raise(GAKill("\nAborting Search..."))
+
 if __name__ == "__main__":
+	signal.signal(signal.SIGINT, signal_handler)
 	main(sys.argv)

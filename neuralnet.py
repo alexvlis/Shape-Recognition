@@ -11,11 +11,11 @@ class ErrorMinimized(Exception):
 class Neuron:
 	def __init__(self, size, activation):
 		self.w = 6 * (2 * np.random.random_sample(size) - 1)
-		self.b = 2 * np.random.random_sample() - 1
+		self.b = 1 * (2 * np.random.random_sample() - 1)
 		self.activation = activation
 
 	def activate(self, inputs):
-		return self.activation(np.sum((np.multiply(self.w, inputs) + self.b)))
+		return self.activation(np.dot(self.w, inputs) + self.b)
 
 	def mutate(self, rate):
 		self.w += rate * np.random.random_sample() * round(2 * np.random.random_sample() - 1)
@@ -25,11 +25,11 @@ class Neuron:
 class NeuralNet(Gene):
 	def __init__(self, input_len):
 		self.layers = []
-		self.build([input_len, 4, 4, 3], logsig)
+		self.build([input_len, 200, 100, 50, 4, 2], logsig)
 
 	def build(self, genome, activation):
 		for i, width in enumerate(genome[1:], start=1):
-			layer = [Neuron(size=genome[i-1], activation=activation) for j in range(width)]
+			layer = [Neuron(size=genome[i-1], activation=activation) for _ in range(width)]
 			self.layers.append(layer)
 
 	def feed_forward(self, input_vector):
@@ -42,10 +42,21 @@ class NeuralNet(Gene):
 
 		return outputs
 
-	def backpropagate(self, data):
-		output = self.feed_forward(input_vector)
-		# TODO: Finish implementation
-		raise(ErrorMinimized("Error Minimized!"))
+	def load(self, filename):
+		with open(filename, "r") as f:
+			for layer in self.layers:
+				for neuron in layer:
+					line = f.readline().split(";")
+					neuron.w = np.array(line[0:-1]).astype(np.float)
+					neuron.b = float(line[-1])
+
+	def save(self, filename):
+		with open(filename, "w+") as f:
+		    for layer in self.layers:
+		        for neuron in layer:
+					for weight in neuron.w:
+					    f.write(str(weight) + ";")
+					f.write(str(neuron.b) + "\n")
 
 
 	'''*********************** Overload gene methods ************************'''
