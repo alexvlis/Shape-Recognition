@@ -17,16 +17,13 @@ class Neuron:
 	def activate(self, inputs):
 		return self.activation(np.dot(self.w, inputs) + self.b)
 
-	def mutate(self, rate):
-		self.w += rate * np.random.random_sample() * round(2 * np.random.random_sample() - 1)
-		self.b += rate * np.random.random_sample() * round(2 * np.random.random_sample() - 1)
-
 
 class NeuralNet(Gene):
 	layers = []
 
 	def __init__(self, args):
-		self.build(args[0], args[1])
+		(skeleton, activation) = args
+		self.build(skeleton, activation)
 
 	def build(self, skeleton, activation):
 		for i, width in enumerate(skeleton[1:], start=1):
@@ -44,6 +41,10 @@ class NeuralNet(Gene):
 		return outputs
 
 	def load(self, filename):
+		"""
+		This method sets the parameters of the neural net from file and assumes
+		it has been built with the correct dimensions.
+		"""
 		with open(filename, "r") as f:
 			for layer in self.layers:
 				for neuron in layer:
