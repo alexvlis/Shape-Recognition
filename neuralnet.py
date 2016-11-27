@@ -1,7 +1,7 @@
 import numpy as np
-import copy
 from genetics import Gene
 from nnmath import *
+import cStringIO
 
 class ErrorMinimized(Exception):
 	def __init__(self, message):
@@ -10,7 +10,7 @@ class ErrorMinimized(Exception):
 
 class Neuron:
 	def __init__(self, size, activation):
-		self.w = 6 * (2 * np.random.random_sample(size) - 1)
+		self.w = 5 * (2 * np.random.random_sample(size) - 1)
 		self.b = 1 * (2 * np.random.random_sample() - 1)
 		self.activation = activation
 
@@ -23,13 +23,14 @@ class Neuron:
 
 
 class NeuralNet(Gene):
-	def __init__(self, input_len):
-		self.layers = []
-		self.build([input_len, 200, 100, 50, 4, 2], logsig)
+	layers = []
 
-	def build(self, genome, activation):
-		for i, width in enumerate(genome[1:], start=1):
-			layer = [Neuron(size=genome[i-1], activation=activation) for _ in range(width)]
+	def __init__(self, args):
+		self.build(args[0], args[1])
+
+	def build(self, skeleton, activation):
+		for i, width in enumerate(skeleton[1:], start=1):
+			layer = [Neuron(size=skeleton[i-1], activation=activation) for _ in range(width)]
 			self.layers.append(layer)
 
 	def feed_forward(self, input_vector):
@@ -61,31 +62,20 @@ class NeuralNet(Gene):
 
 	'''*********************** Overload gene methods ************************'''
 
-	def mutate(self, rate):
+	def encode(self):
 		for layer in self.layers:
 			for neuron in layer:
-				neuron.mutate(rate)
+				for weight in neuron.w:
+					self.genotype += float_to_bin(weight)
+				self.genotype += float_to_bin(neuron.b)
+
+	def decode(self):
+		genotype = cStringIO(self.genotype)
+		for layer in self.layers:
+			for neuron in layer:
+				for weight in neuron.w:
+					weight = bin_to_float(genotype.read(64))
+				neuron.b = bin_to_float(genotype.read(64))
 
 	def evaluate(self, input_vector):
 		return self.feed_forward(input_vector)
-
-	def breed(self, parent, mutation_rate):
-		offspring = copy.deepcopy(parent)
-		fitness_sum = self.fitness + parent.fitness
-		if fitness_sum == 0:
-			weight1 = 0.5
-			weight2 = 0.5
-		else:
-			weight1 = self.fitness/fitness_sum
-			weight2 = parent.fitness/fitness_sum
-
-		for layer, off_layer in zip(self.layers, offspring.layers):
-			for neuron, off_neuron in zip(layer, off_layer):
-				off_neuron.w = weight1 * neuron.w + weight2 * off_neuron.w
-				off_neuron.b = weight1 * neuron.b + weight2 * off_neuron.b
-
-				# Mutate the offspring and the parent neurons
-				neuron.mutate(mutation_rate)
-				off_neuron.mutate(mutation_rate)
-
-		return offspring
