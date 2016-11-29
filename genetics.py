@@ -1,11 +1,12 @@
-import copy
+import numpy as np
 from random import randint
 
 # Gene Super Class
 class Gene:
 	fitness = 0
 	score = 0
-	genotype = ""
+	genotype = []
+	cursor = 0
 
 	def __init__(self):
 		pass
@@ -16,16 +17,19 @@ class Gene:
 	def decode(self):
 		pass
 
-	def mutate(self, rate):
-		gen_len = len(self.genotype)
-
-		for _ in round(rate * gen_len)
-			idx = randint(0, gen_len) # Select a random bit
-			# Flip the bit
-			genotype[idx] = '0' if genotype[randint(0, gen_len)] == '1' else '1'
-
 	def evaluate(self):
 		pass
+
+	def mutate(self, rate):
+		gen_len = len(self.genotype)
+                # Select some random chromosomes
+                idx = np.random.random_integers(0, gen_len-1, size=(1, round(rate*gen_len)))
+                self.genotype[idx] += 2 * np.random.random_sample(1) - 1 # Add a small -/+ number
+
+	def read_genotype(self, delta):
+		chunk = self.genotype[self.cursor:self.cursor + delta]
+		self.cursor += delta
+		return chunk
 
 
 class GeneticAlgorithm:
@@ -33,9 +37,10 @@ class GeneticAlgorithm:
 		"""
 		This contructor takes multiple parameters as well as the constructor
 		for the population and an n-tuple for the arguments of the contructor.
-		It is assumed the contructor know how to decompose this.
+		It is assumed the contructor knows how to decompose this.
 		"""
 		self.obj = obj
+		self.args = args
 		self.mutation_rate = mutation_rate
 		self.target_error = error
 		self.training_data = data
@@ -43,10 +48,13 @@ class GeneticAlgorithm:
 		self.popsize = 0
 		self.error = 1
 
-	def population(self, size):
+	def populate(self, size):
 		# Use the object constructor to create the population
-		self.population = np.array([self.obj(args) for _ in range(size)])
+		self.population = np.array([self.obj(self.args) for _ in range(size)])
 		self.popsize = size
+
+	def singleton(self):
+		return self.obj(self.args, build=False)
 
 	def evaluate(self):
 		for gene in self.population:
@@ -55,6 +63,7 @@ class GeneticAlgorithm:
 			for data in self.training_data:
 				(tags, input_vector) = data
 				output = gene.evaluate(input_vector)
+				#print output
 
 				# Determine the desired output
 				target = map(lambda x: int(x in tags), self.targets)
@@ -79,36 +88,26 @@ class GeneticAlgorithm:
 
 	def crossover(self):
 		offsprings = []
-		for gene in self.population:
-			# Breed with random gene from the population
-			offspring = gene.breed(self.population[randint(0, self.popsize-2)], self.mutation_rate)
 
-			offsprings.append(offspring)
-
-		self.population = self.population + offsprings
-
-	def crossover(self):
 		# Select parents based on roulette selection
 		for _ in range(self.popsize):
-			parents = self.roulette(2)
-			offspring = self.breed(parents)
+			offsprings.append(self.breed(self.roulette(2)))
+
+		self.population = np.array(offsprings)
 
 	def breed(self, parents):
-		# Create a copy from one of the genes
-		offspring = copy.deepcopy(parents[0])
+		# Make a new gene and don't update global population size
+		offspring = self.singleton()
 
-		n = len(parents) - 1
-		for i, chromosome in enumerate(offspring.genotype):
-			chromosome = parents[randint(0, n)][i]
+		# Determine points of cut
+		length = parents[0].genotype.size - 1
+		cuts = [randint(0, length/2), randint(length/2, length)]
+		# Perform 2-point crossover
+		offspring.genotype = np.concatenate((parents[0].genotype[:cuts[0]], parents[1].genotype[cuts[0]:cuts[1]], parents[0].genotype[cuts[1]:]))
+		offspring.mutate(self.mutation_rate)
+		offspring.decode()
 
-			offspring.mutate()
-			offspring.decode()
-
-			return offspring
-
-	def select(self):
-		# Keep the population size constant
-		self.population = self.population[-self.popsize:]
+		return offspring
 
 	def roulette(self, n):
 		# Gather the fitnesses from all the gene
