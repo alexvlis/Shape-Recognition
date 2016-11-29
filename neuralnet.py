@@ -14,7 +14,7 @@ class NeuralNet(Gene):
 	def build(self, skeleton):
 		for i, width in enumerate(skeleton[1:], start=1):
 			weights = 100 * (2 * np.random.sample((skeleton[i-1], width)) - 1)
-			biases = 5 * (2 * np.random.sample(width) - 1)
+			biases = 3 * (2 * np.random.sample(width) - 1)
 			self.layers.append((weights, biases))
 
 	def feed_forward(self, input_vec):
