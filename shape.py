@@ -2,8 +2,11 @@ import os
 import sys
 import random
 import signal
+import numpy as np
 from scipy import misc
+import matplotlib.pyplot as plt
 from neuralnet import *
+from nnmath import *
 from genetics import GeneticAlgorithm
 
 class GAKill(Exception):
@@ -18,6 +21,7 @@ def main(argv):
 	targets = np.array(['rectangle', 'circle'])
 
 	if argv[1] == 'train':
+		# Check the input arguments
 		if len(argv) < 3:
 		    print "Usage: python shape.py train <error>"
 		    sys.exit()
@@ -36,26 +40,32 @@ def main(argv):
 		# Shuffle for more randomness
 		random.shuffle(training_data)
 
-		mutation_rate = 0.1
-		error = float(argv[2])
+		# Create a GA of neural nets
 		img_len = len(training_data[0][1])
-		ga = GeneticAlgorithm(error = error,
-								mutation_rate = mutation_rate,
+		ga = GeneticAlgorithm(error = float(argv[2]),
+								mutation_rate = 0.01,
 								data = training_data,
 								targets = targets,
 								obj = NeuralNet,
-								args = ([img_len, 200, 50, 4, 2], logsig))
+								args = ([img_len, 50, 25, 2], logsig))
+
 		# Create the 1st generation
-		ga.population(100)
+		print "Creating population..."
+		ga.populate(200)
 
 		print "Initiating GA heuristic approach..."
 
 		# Start evolution
+		epoch = 0
+		errors = []
 		while ga.evolve():
 			try:
 				ga.evaluate()
-				ga.select()
 				ga.crossover()
+
+				# Store error and measure time
+				epoch += 1
+				errors.append(ga.error)
 				print "error: " + str(ga.error)
 			except GAKill as e:
 				print e.message
@@ -66,20 +76,34 @@ def main(argv):
 
 		# Write the weights to file
 		nn = ga.fittest()
-		nn.save("weights.txt")
+		nn.save("neuralnet.pkt")
+
+		x = range(epoch)
+		y = errors
+
+		# Plot error over time
+		fig = plt.figure()
+		plt.plot(x, y)
+		plt.show()
 
 		print "Done!"
 
-	elif argv[1] == "test":
+	elif argv[1] == "predict":
+		# Check the arguments
 		if len(argv) < 3:
 		    print "Usage: python shape.py test <image>"
 		    sys.exit()
 
+		# Read the test image
 		img = np.ravel(misc.imread(argv[2], flatten=True))
-		nn = NeuralNet(len(img))
-		nn.load("weights.txt")
+
+		# Build the neural net from file
+		nn = NeuralNet(([], logsig), build=False)
+		nn.load("neuralnet.pkt")
 
 		output = nn.feed_forward(img)
+
+		# Determine the result
 		result = targets[np.around(output).astype(np.bool)]
 
 		print (output, result)
