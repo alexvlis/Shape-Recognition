@@ -1,4 +1,4 @@
 *.pyc
 training_data
-weights.txt
-test_data/
+neuralnet.pkt
+test_data
