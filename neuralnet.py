@@ -11,7 +11,7 @@ class NeuralNet(Gene):
 	n = 0
 
 	def __init__(self, args, build=True):
-		(self.skeleton, self.sigmoid, self.alpha) = args
+		(self.skeleton, self.alpha) = args
 		if build:
 			self.build(self.skeleton)
 			self.encode()
@@ -29,33 +29,67 @@ class NeuralNet(Gene):
 		zs = []
 		activations = [activation]
 		z = activation
-		for w, b in zip(self.weights, self.biases):
+		# Propagate through hidden layers
+		for w, b in zip(self.weights[:-1], self.biases[:-1]):
 			z = np.dot(w, activation) + b
 			zs.append(z)
-			activation = self.sigmoid(z)
+			activation = sigmoid(z)
 			activations.append(activation)
 
+		# Use softmax for output layer
+		z = np.dot(self.weights[-1], activation) + self.biases[-1]
+		zs.append(z)
+		activations.append(sigmoid(z))
 		return (activations, zs)
 
 	def backpropagate(self, activation, target):
+		# Initialise the deltas
+		nabla_b = [np.zeros(b.shape) for b in self.biases]
+		nabla_w = [np.zeros(w.shape) for w in self.weights]
+
 		activations, zs = self.feed_forward(activation)
+		self.error += square_error(target, activations[-1])
 
 		# Determine the output deltas using the derivative of the sigmoid
-		delta = sig_prime(zs[-1]) * (activations[-1] - target)
+		delta = softmax_prime(zs[-1]) * (activations[-1] - target)
 
-		# Adjust the weights and biases of the output layer
-		self.weights[-1] -= self.alpha * delta[:, np.newaxis] * activations[-2][np.newaxis, :]
- 		self.biases[-1] -= self.alpha * delta
+		nabla_w[-1] = delta[:, None] * activations[-2][None, :]
+		nabla_b[-1] = delta
 
 		# Propagate error to the hidden layers
 		for i in xrange(2, self.n):
 			# Calculate the delta for this layer
 			delta = np.dot(self.weights[-i+1].T, delta) * sig_prime(zs[-i])
-			# Adjust the weights of this layer
-			self.weights[-i] -= self.alpha * delta[:, np.newaxis] * activations[-i-1][np.newaxis, :]
-			self.biases[-i] -= self.alpha * delta
+			#
+			nabla_w[-i] = delta[:, None] * activations[-i-1][None, :]
+			nabla_b[-i] = delta
 
-		return square_error(target, activations[-1])
+		return (nabla_w, nabla_b)
+
+	def gradient_descent(self, inputs, targets, epochs):
+		m = len(inputs)
+
+		for i in range(epochs):
+			nabla_b = [np.zeros(b.shape) for b in self.biases]
+			nabla_w = [np.zeros(w.shape) for w in self.weights]
+			self.error = 0 # Reset the error
+
+			for tag, img in inputs:
+				target = map(lambda x: int(x in tag), targets)
+				delta_nabla_w, delta_nabla_b = self.backpropagate(img, target)
+
+				for j in range(len(nabla_w)):
+					nabla_w[j] += delta_nabla_w[j]
+					nabla_b[j] += delta_nabla_b[j]
+
+			# Update the weights and biases
+			self.weights = [w-(self.alpha/m)*nw for w, nw in zip(self.weights, nabla_w)]
+			self.biases = [b-(self.alpha/m)*nb for b, nb in zip(self.biases, nabla_b)]
+
+			self.error /= m # Normalize the error
+			print "Epoch: " + str(i) + " error: " + str(self.error)
+
+			self.fitness = 1 - self.error # Set the fitness
 
 	def load(self, filename):
 		'''This method sets the parameters of the neural net from file.'''
@@ -80,6 +114,8 @@ class NeuralNet(Gene):
 
 	def decode(self):
 		'''Decode genotype into layers of weights and biases'''
+		self.weights = []
+		self.biases = []
 		for i, width in enumerate(self.skeleton[1:], start=1):
 			d = (self.skeleton[i-1] + 1) * width
 			# Read the weights for layer and reshape them to 2D
@@ -91,11 +127,6 @@ class NeuralNet(Gene):
 
 		self.cursor = 0 # Reset the cursor
 
+	# Wrapper around the gradient descent method
 	def evaluate(self, inputs, targets, epochs):
-		for i in range(epochs):
-			for tag, img in inputs:
-				target = map(lambda x: int(x in tag), targets)
-				self.error += self.backpropagate(img, target)
-
-			print "Epoch: " + str(i) + " error: " + str(self.error/len(inputs))
-			self.error = 0 # Reset the error
+		self.gradient_descent(inputs, targets, epochs)
