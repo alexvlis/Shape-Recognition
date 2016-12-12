@@ -127,6 +127,17 @@ class NeuralNet(Gene):
 				test_accuracy_line.set_xdata(self.test_accuracies)
 				fig.canvas.draw() # Plot everything
 
+	def validate(self, targets, test_data):
+		accuracy = 0.0
+		for tag, img in test_data:
+			target = map(lambda x: int(x in tag), targets)
+			activations, zs = self.feed_forward(img)
+
+			if np.argmax(target) == np.argmax(activations[-1]):
+				accuracy += 1
+
+		return accuracy/len(test_data)
+
 	def learning_rate(self, i):
 		return self.alpha_min + (self.alpha_max - self.alpha_min) * np.exp(-i/self.decay_speed)
 

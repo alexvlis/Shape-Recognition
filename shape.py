@@ -93,6 +93,15 @@ def main(argv):
 		nn.save("neuralnet.pkt")
 		print "Done!"
 
+	elif argv[1] == "validate":
+		test_data = read_data('test_data/')
+		
+		nn = NeuralNet([], build=False)
+		nn.load("neuralnet.pkt")
+
+		accuracy = nn.validate(targets, test_data)
+		print "Accuracy: " + str(accuracy)
+
 	elif argv[1] == "predict":
 		# Check the arguments
 		if len(argv) < 3:
