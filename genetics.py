@@ -1,5 +1,6 @@
 import numpy as np
 from random import randint
+import copy
 
 class GAKill(Exception):
 	def __init__(self, message):
@@ -42,8 +43,10 @@ class Gene:
 class GeneticAlgorithm:
 	popsize = 0
 	error = 1
+	epoch = 0
+	armageddon = 0
 
-	def __init__(self, error, mutation_rate, data, targets, obj, args):
+	def __init__(self, epochs, mutation_rate, data, targets, obj, args):
 		"""
 		This contructor takes multiple parameters as well as the constructor
 		for the population and an n-tuple for the arguments of the contructor.
@@ -52,13 +55,13 @@ class GeneticAlgorithm:
 		self.obj = obj
 		self.args = args
 		self.mutation_rate = mutation_rate
-		self.target_error = error
 		self.training_data = data
 		self.targets = targets
+		self.armageddon = epochs
 
 	def populate(self, size):
 		# Use the object constructor to create the population
-		self.population = np.array([self.obj(self.args) for _ in range(size)])
+		self.population = [self.obj(self.args) for _ in range(size)]
 		self.popsize = size
 
 	def singleton(self):
@@ -66,10 +69,10 @@ class GeneticAlgorithm:
 
 	def evaluate(self):
 		for gene in self.population:
-			gene.evaluate(self.training_data, self.targets, 10)
+			gene.evaluate(self.training_data, self.targets)
 
 		self.population = sorted(self.population, key=lambda gene: gene.fitness)
-		self.error = self.fittest().error  # Set global the error
+		self.error = 1 - self.fittest().fitness  # Set the global error
 
 	def crossover(self):
 		# Create new population using roulette selection and breeding
@@ -100,7 +103,7 @@ class GeneticAlgorithm:
 		return np.random.choice(self.population, n, p=fitnesses)
 
 	def fittest(self):
-		return self.population[-1]
+		return copy.deepcopy(self.population[-1])
 
 	def evolve(self):
-		return True if self.error > self.target_error else False
+		return True if self.epoch < self.armageddon else False
