@@ -1,5 +1,3 @@
 *.pyc
-training_data
 neuralnet.pkt
-test_data
 *.png
