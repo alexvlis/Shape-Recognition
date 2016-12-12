@@ -73,7 +73,7 @@ class NeuralNet(Gene):
 
 		return (nabla_w, nabla_b)
 
-	def gradient_descent(self, training_data, test_data, targets, epochs, vis=False):
+	def gradient_descent(self, training_data, targets, epochs, test_data=None, vis=False):
 		if vis:
 			fig = plt.figure()
 			ax = fig.add_subplot(111)
@@ -102,16 +102,12 @@ class NeuralNet(Gene):
 
 			self.biases = [b-(self.learning_rate(i)/m)*nb for b, nb in zip(self.biases, nabla_b)]
 
-			self.test_accuracies.append(0)
-			for tag, img in test_data:
-				target = map(lambda x: int(x in tag), targets)
-				activations, zs = self.feed_forward(img)
-
-				if np.argmax(target) == np.argmax(activations[-1]):
-					self.test_accuracies[-1] += 1
+			# Validate the neural net
+			if test_data:
+				self.test_accuracies.append(self.validate(targets, test_data))
+				self.test_accuracies[-1] /= float(len(test_data))
 
 			self.errors[-1] /= m # Normalize the error
-			self.test_accuracies[-1] /= float(len(test_data))
 			self.train_accuracies[-1] /= float(m)
 			print "Epoch: " + str(i) + " error: " + str(self.errors[-1]) + " accuracy: " + str(self.test_accuracies[-1]) + " train_accuracy: " + str(self.train_accuracies[-1])
 
@@ -178,19 +174,12 @@ class NeuralNet(Gene):
 		self.cursor = 0 # Reset the cursor
 		self.n = len(self.weights) + 1
 
-	# Wrapper around the gradient descent method
 	def evaluate(self, training_data, targets):
-		score = 0
+		error = 0
+
 		for tag, img in training_data:
-			target = map(lambda x: int(x in tag), targets)
+			target = np.array(map(lambda x: int(x in tag), targets))
 			activations, zs = self.feed_forward(img)
+			error += square_error(activations[-1], target)
 
-			eval_vec = (np.round(activations[-1]) == target).astype(np.int)
-			score += np.dot(activations[-1], eval_vec)
-			eval_vec = (np.round(activations[-1]) != target).astype(np.int)
-			score -= np.dot(activations[-1], eval_vec)
-
-		if score < 0:
-			score = 0
-
-		self.fitness = score/len(training_data)
+		self.fitness = 1 - error/len(training_data)

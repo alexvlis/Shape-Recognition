@@ -44,7 +44,7 @@ def main(argv):
 		# Create a GA of neural nets
 		img_len = len(training_data[0][1])
 		ga = GeneticAlgorithm(epochs = int(argv[2]),
-								mutation_rate = 0.01,
+								mutation_rate = 0.001,
 								data = training_data,
 								targets = targets,
 								obj = NeuralNet,
@@ -71,12 +71,9 @@ def main(argv):
 				print e.message
 				break
 
-		x = range(ga.epoch)
-		y = errors
-
 		# Plot error over time
 		fig = plt.figure()
-		plt.plot(x, y)
+		plt.plot(range(ga.epoch), errors)
 		plt.xlabel('Time (Epochs)')
 		plt.ylabel('Error')
 		plt.show()
@@ -86,7 +83,7 @@ def main(argv):
 		nn = ga.fittest()
 		print "Initiating Gradient Descent optimization..."
 		try:
-			nn.gradient_descent(training_data, test_data, targets, int(argv[3]))
+			nn.gradient_descent(training_data, targets, int(argv[3]), test_data)
 		except GAKill as e:
 			print e.message
 
@@ -95,7 +92,7 @@ def main(argv):
 
 	elif argv[1] == "validate":
 		test_data = read_data('test_data/')
-		
+
 		nn = NeuralNet([], build=False)
 		nn.load("neuralnet.pkt")
 
