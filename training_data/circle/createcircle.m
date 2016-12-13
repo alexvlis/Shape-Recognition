@@ -1,9 +1,9 @@
 size = 100;
-for i = 1:200
+for i = 1:50
    img = ones(size) * 255;
-   R = randi(size/2);
-   x = randi(size-R);
-   y = randi(size-R);
+   R = randi([10 40]);
+   x = randi([40 60]);
+   y = randi([40 60]);
    
    for r = 1:R
        for theta = 0:0.01:2*pi
@@ -20,5 +20,5 @@ for i = 1:200
        end
    end
    img(x, y) = 0;
-   imwrite(img, strcat('circle-', num2str(i), '.bmp'))
+   imwrite(img, strcat('circle-', num2str(i), '.png'))
 end

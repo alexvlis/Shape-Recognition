@@ -1,14 +1,14 @@
 imsize = 100;
-for i = 1:100
+for i = 1:12
     img = ones(imsize) * 255;
    
-    w = randi(imsize - 1);
-    h = randi(imsize - 1);
+    w = randi([20 50]);
+    h = randi([20 50]);
     
-    x = randi(imsize-h);
-    y = randi(imsize-w);
+    x = randi([20 50]);
+    y = randi([20 50]);
     
     img(x:x+h, y:y+w) = 0;
     
-    imwrite(img, strcat('rectangle-', num2str(i), '.bmp'));
+    imwrite(img, strcat('rectangle-', num2str(i), '.png'));
 end
