@@ -9,7 +9,7 @@ class NeuralNet(Gene):
 	test_accuracies = []
 	train_accuracies = []
 	alpha_max = 0.8
-	alpha_min = 0.01
+	alpha_min = 0.1
 	decay_speed = 1000
 
 	def __init__(self, args, build=True):
@@ -74,13 +74,6 @@ class NeuralNet(Gene):
 		return (nabla_w, nabla_b)
 
 	def gradient_descent(self, training_data, targets, epochs, test_data=None, vis=False):
-		if vis:
-			fig = plt.figure()
-			ax = fig.add_subplot(111)
-			error_line, = ax.plot(x, y, 'b-')
-			test_accuracy_line, = ax.plot(x, y, 'r-')
-			test_accuracy_line, = ax.plot(x, y, 'g-')
-
 		m = len(training_data)
 
 		for i in range(epochs):
@@ -105,23 +98,19 @@ class NeuralNet(Gene):
 			# Validate the neural net
 			if test_data:
 				self.test_accuracies.append(self.validate(targets, test_data))
-				self.test_accuracies[-1] /= float(len(test_data))
 
 			self.errors[-1] /= m # Normalize the error
 			self.train_accuracies[-1] /= float(m)
 			print "Epoch: " + str(i) + " error: " + str(self.errors[-1]) + " accuracy: " + str(self.test_accuracies[-1]) + " train_accuracy: " + str(self.train_accuracies[-1])
 
-			# Update the visualization
-			if vis:
-				# Update the time axis
-				error_line.set_ydata(range(i))
-				train_accuracy_line.set_ydata(range(i))
-				test_accuracy_line.set_ydata(range(i))
-
-				error_line.set_xdata(self.errors)
-				train_accuracy_line.set_xdata(self.train_accuracies)
-				test_accuracy_line.set_xdata(self.test_accuracies)
-				fig.canvas.draw() # Plot everything
+		if vis:
+			fig = plt.figure()
+			plt.plot(range(epochs), self.errors)
+			plt.plot(range(epochs), self.train_accuracies)
+			plt.plot(range(epochs), self.test_accuracies)
+			plt.xlabel('Time (Epochs)')
+			plt.ylabel('Error')
+			plt.show()
 
 	def validate(self, targets, test_data):
 		accuracy = 0.0

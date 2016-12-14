@@ -30,8 +30,8 @@ def main(argv):
 
 	if argv[1] == 'train':
 		# Check the input arguments
-		if len(argv) < 3:
-		    print "Usage: python shape.py train <error>"
+		if len(argv) < 4:
+		    print "Usage: python shape.py train <GA-epochs> <SGD-epochs>"
 		    sys.exit()
 
 		# Load the training data
@@ -44,11 +44,11 @@ def main(argv):
 		# Create a GA of neural nets
 		img_len = len(training_data[0][1])
 		ga = GeneticAlgorithm(epochs = int(argv[2]),
-								mutation_rate = 0.001,
+								mutation_rate = 0.01,
 								data = training_data,
 								targets = targets,
 								obj = NeuralNet,
-								args = [img_len, 20, 10, 3])
+								args = [img_len, 10, 4, 3])
 
 		# Create the 1st generation
 		print "Creating population..."
@@ -83,7 +83,7 @@ def main(argv):
 		nn = ga.fittest()
 		print "Initiating Gradient Descent optimization..."
 		try:
-			nn.gradient_descent(training_data, targets, int(argv[3]), test_data)
+			nn.gradient_descent(training_data, targets, int(argv[3]), test_data=test_data, vis=True)
 		except GAKill as e:
 			print e.message
 
