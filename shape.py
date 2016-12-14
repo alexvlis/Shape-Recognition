@@ -15,8 +15,8 @@ def read_data(path):
 		for dirname in dirnames:
 			for f in os.listdir(dirpath + dirname):
 				try:
-					img = np.ravel(misc.imread(dirpath + dirname + '/' + f, flatten=True))/255
-					data.append((dirname, img))
+				    img = np.ravel(misc.imread(dirpath + dirname + '/' + f, flatten=True))/255
+				    data.append((dirname, img))
 				except:
 					pass
 	return data
