@@ -32,7 +32,7 @@ class Gene:
 		idx = np.random.random_integers(0, gen_len-1, size=(1, round(rate*gen_len)))
 
 		# Add a small -/+ number
-		self.genotype[idx] += 0.01 * (2 * np.random.random_sample(1) - 1)
+		self.genotype[idx] += 0.1 * (2 * np.random.random_sample(1) - 1)
 
 	def read_genotype(self, delta):
 		chunk = self.genotype[self.cursor:self.cursor + delta]
@@ -83,12 +83,11 @@ class GeneticAlgorithm:
 		# Make a new gene
 		offspring = self.singleton()
 
-		# Determine cutting points
+		# Determine crossover points
 		length = parents[0].genotype.size - 1
 		cuts = [randint(0, round(length/2)), randint(round(length/2), length)]
 
 		# Perform 2-point crossover
-		# TODO: Implement random order of breeding
 		offspring.genotype = np.concatenate((parents[0].genotype[:cuts[0]], parents[1].genotype[cuts[0]:cuts[1]], parents[0].genotype[cuts[1]:]))
 
 		offspring.mutate(self.mutation_rate)
@@ -97,15 +96,15 @@ class GeneticAlgorithm:
 		return offspring
 
 	def roulette(self, n):
-		# Gather the fitnesses from the best 10 genes
+		# Gather the fitnesses from the half best population
 		choice = self.population[-self.popsize/2:]
-		#choice = self.population
 		fitnesses = map(lambda x: x.fitness, choice)
 		fitnesses /= np.sum(fitnesses) # Normalise
 
 		return np.random.choice(choice, n, p=fitnesses)
 
 	def fittest(self):
+		# Clone the fittest gene
 		return copy.deepcopy(self.population[-1])
 
 	def evolve(self):
