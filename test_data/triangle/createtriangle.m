@@ -1,8 +1,8 @@
 size = 100;
 for i = 1:12
-   R = randi([20 40]);
-   x = randi([40 60]);
-   y = randi([40 60]);
+   R = randi([30 40]);
+   x = randi([45 55]);
+   y = randi([45 55]);
    
    %thetas = randi([1 12], [1, 3]);
    thetas = [0, pi/2, pi];

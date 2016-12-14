@@ -1,9 +1,9 @@
 size = 100;
 for i = 1:12
    img = ones(size) * 255;
-   R = randi([10 40]);
-   x = randi([40 60]);
-   y = randi([40 60]);
+   R = randi([20 30]);
+   x = randi([45 50]);
+   y = randi([45 50]);
    
    for r = 1:R
        for theta = 0:0.01:2*pi

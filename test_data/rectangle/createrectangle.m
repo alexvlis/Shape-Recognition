@@ -2,11 +2,11 @@ imsize = 100;
 for i = 1:12
     img = ones(imsize) * 255;
    
-    w = randi([20 50]);
-    h = randi([20 50]);
+    w = randi([30 40]);
+    h = randi([30 40]);
     
-    x = randi([20 50]);
-    y = randi([20 50]);
+    x = 30;
+    y = 30;
     
     img(x:x+h, y:y+w) = 0;
     
