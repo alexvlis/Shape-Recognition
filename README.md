@@ -1,6 +1,12 @@
 # shape
 Neural Network to detect 2D shapes in images using a GANN approach. This combines the heuristic approach of a Genetic Algorithm, and the precision of backpropagation, to reach optimum convergence.
 
+Installation:
+1. Run: git clone https://github.com/alexvlis/shape.git to clone the repository from github.
+
+2. Run: sudo pip install -r requirements.txtsudo pip install -r requirements.txt to install all the required libraries.
+
+Usage:
 There are 3 options to run this program:
 
 train:
