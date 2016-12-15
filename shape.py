@@ -30,9 +30,9 @@ def main(argv):
 
 	if argv[1] == 'train':
 		# Check the input arguments
-		if len(argv) < 4:
-		    print "Usage: python shape.py train <GA-epochs> <SGD-epochs>"
-		    sys.exit()
+		if len(argv) < 5:
+			print "Usage: python shape.py train <GA-epochs> <SGD-epochs> <visFlag>"
+			sys.exit()
 
 		# Load the training data
 		training_data = read_data('training_data/')
@@ -71,21 +71,25 @@ def main(argv):
 				print e.message
 				break
 
-		# Plot error over time
-		fig = plt.figure()
-		plt.plot(range(ga.epoch), errors)
-		plt.xlabel('Time (Epochs)')
-		plt.ylabel('Error')
-		plt.show()
+		vis = bool(int(argv[4]))
+		if vis:
+			# Plot error over time
+			fig = plt.figure()
+			plt.plot(range(ga.epoch), errors)
+			plt.xlabel('Time (Epochs)')
+			plt.ylabel('Error')
+			plt.show()
 
 		print "--------------------------------------------------------------\n"
 
 		nn = ga.fittest()
-		print "Initiating Gradient Descent optimization..."
-		try:
-			nn.gradient_descent(training_data, targets, int(argv[3]), test_data=test_data, vis=True)
-		except GAKill as e:
-			print e.message
+		epochs = int(argv[3])
+		if epochs:
+			print "Initiating Gradient Descent optimization..."
+			try:
+				nn.gradient_descent(training_data, targets, epochs, test_data=test_data, vis=vis)
+			except GAKill as e:
+				print e.message
 
 		nn.save("neuralnet.pkt")
 		print "Done!"
@@ -114,7 +118,6 @@ def main(argv):
 
 		# Predict
 		activations, zs = nn.feed_forward(img)
-
 		print targets[np.argmax(activations[-1])]
 
 	else:
