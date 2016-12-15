@@ -29,7 +29,7 @@ class Gene:
 		gen_len = len(self.genotype)
 
 		# Select some random chromosomes
-		idx = np.random.random_integers(0, gen_len-1, size=(1, round(rate*gen_len)))
+		idx = np.random.random_integers(0, gen_len-1, size=(1, int(round(rate*gen_len))))
 
 		# Add a small -/+ number
 		self.genotype[idx] += 0.1 * (2 * np.random.random_sample(1) - 1)
@@ -49,8 +49,8 @@ class GeneticAlgorithm:
 	def __init__(self, epochs, mutation_rate, data, targets, obj, args):
 		"""
 		This contructor takes multiple parameters as well as the constructor
-		for the population and an n-tuple for the arguments of the contructor.
-		It is assumed the contructor knows how to decompose this.
+		for the population and the arguments of the contructor. It is assumed
+		the contructor knows how to use this.
 		"""
 		self.obj = obj
 		self.args = args
@@ -88,7 +88,8 @@ class GeneticAlgorithm:
 		cuts = [randint(0, round(length/2)), randint(round(length/2), length)]
 
 		# Perform 2-point crossover
-		offspring.genotype = np.concatenate((parents[0].genotype[:cuts[0]], parents[1].genotype[cuts[0]:cuts[1]], parents[0].genotype[cuts[1]:]))
+		offspring.genotype = np.concatenate((parents[0].genotype[:cuts[0]],
+		parents[1].genotype[cuts[0]:cuts[1]], parents[0].genotype[cuts[1]:]))
 
 		offspring.mutate(self.mutation_rate)
 		offspring.decode()
@@ -96,8 +97,9 @@ class GeneticAlgorithm:
 		return offspring
 
 	def roulette(self, n):
-		# Gather the fitnesses from the half best population
 		choice = self.population[-self.popsize/2:]
+
+		# Gather the fitnesses from the half best population
 		fitnesses = map(lambda x: x.fitness, choice)
 		fitnesses /= np.sum(fitnesses) # Normalise
 
