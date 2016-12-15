@@ -4,9 +4,9 @@ Neural Network to detect 2D shapes in images using a GANN approach. This combine
 There are 3 options to run this program:
 
 train:
-    This will train the network using the "training_data/" directory. Each subdirectory will be considered as the label for a class. This option takes 1 argument which is the error value to reach before exiting.
+    This will train the network using the "training_data/" directory. Each subdirectory will be considered as the label for a class. This option takes 3 arguments which are the number or epochs to run each algorithm and an extra flag to visualize the result.
 
-test:
+validate:
     This option will force the net to test itself with the data under test_data, which is assumed to have the same labels as the training data. The neural net will test its performance using this.
 
 predict:
