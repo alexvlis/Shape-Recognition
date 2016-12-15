@@ -10,7 +10,7 @@ class NeuralNet(Gene):
 	train_accuracies = []
 	alpha_max = 0.8
 	alpha_min = 0.1
-	decay_speed = 1000
+	decay_speed = 100
 
 	def __init__(self, args, build=True):
 		self.biases = []
@@ -22,6 +22,7 @@ class NeuralNet(Gene):
 
 	def build(self, skeleton):
 		for i, width in enumerate(skeleton[1:], start=1):
+			# Intialise the parameters with random values
 			weights = (2 * np.random.sample((width, skeleton[i-1])) - 1)
 			biases = (2 * np.random.sample(width) - 1)
 			self.weights.append(weights)
@@ -73,7 +74,8 @@ class NeuralNet(Gene):
 
 		return (nabla_w, nabla_b)
 
-	def gradient_descent(self, training_data, targets, epochs, test_data=None, vis=False):
+	def gradient_descent(self, training_data, targets, epochs, test_data=None,
+	vis=False):
 		m = len(training_data)
 
 		for i in range(epochs):
@@ -86,6 +88,7 @@ class NeuralNet(Gene):
 				target = map(lambda x: int(x in tag), targets)
 				delta_nabla_w, delta_nabla_b = self.backpropagate(img, target)
 
+				# Accumulate the partial derivatives
 				for j in range(self.n - 1):
 					nabla_w[j] += delta_nabla_w[j]
 					nabla_b[j] += delta_nabla_b[j]
@@ -104,12 +107,17 @@ class NeuralNet(Gene):
 			print "Epoch: " + str(i) + " error: " + str(self.errors[-1]) + " accuracy: " + str(self.test_accuracies[-1]) + " train_accuracy: " + str(self.train_accuracies[-1])
 
 		if vis:
-			fig = plt.figure()
+			plt.figure(1)
 			plt.plot(range(epochs), self.errors)
-			plt.plot(range(epochs), self.train_accuracies)
-			plt.plot(range(epochs), self.test_accuracies)
 			plt.xlabel('Time (Epochs)')
 			plt.ylabel('Error')
+
+			plt.figure(2)
+			plt.plot(range(epochs), self.train_accuracies, 'g')
+			plt.plot(range(epochs), self.test_accuracies, 'r')
+			plt.xlabel('Time (Epochs)')
+			plt.ylabel('Accuracy')
+
 			plt.show()
 
 	def validate(self, targets, test_data):
