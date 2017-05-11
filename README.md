@@ -1,14 +1,9 @@
 # Shape Recognition
-Neural Network to detect 2D shapes in images using a GANN approach. This combines the heuristic approach of a Genetic Algorithm, and the precision of backpropagation, to reach optimum convergence.
+Neural Network to detect 2D shapes in images using a GANN approach. This combines the heuristic approach of a Genetic Algorithm, and the precision of gradient descent, to reach optimum convergence.
 
 Installation:
-1. Run: 
 ```
 git clone https://github.com/alexvlis/shape.git
-```
-
-2. Run: 
-```
 sudo pip install -r requirements.txt
 ```
 
